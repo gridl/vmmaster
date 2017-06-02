@@ -17,3 +17,6 @@ sudo apt-get -y install libssl-dev libffi-dev
 
 # install postgres dependencies
 sudo apt-get install -y libpq-dev
+
+# prctl reqs
+sudo apt-get install build-essential libcap-dev

@@ -16,6 +16,9 @@ from core.exceptions import SessionException, RequestException, RequestTimeoutEx
 from core.video import VNCVideoHelper
 
 log = logging.getLogger(__name__)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("keystoneauth").setLevel(logging.WARNING)
+logging.getLogger("keystoneauth.identity.v3.base").setLevel(logging.WARNING)
 
 
 class RequestHelper(object):
@@ -112,8 +115,17 @@ class Session(models.Session):
             "selenium_server": "/var/log/selenium_server.log"
         }
         if not self.endpoint_ip:
+            log.warn("Session {} have no endpoint IP".format(self.id))
             return False
-        return self.endpoint.save_artifacts(self, artifacts)
+        elif getattr(self, "endpoint", None) is None:
+            log.warn("Session {} have no endpoint!".format(self.id))
+            return False
+        else:
+            log.debug("Saving artifacts for session={}, ip=".format(self.id, self.endpoint_ip))
+            res = self.endpoint.save_artifacts(self, artifacts)
+            log.debug("Done saving artifacts for session={}, ip=".format(self.id, self.endpoint_ip))
+            return res
+
 
     def close(self, reason=None):
         self.closed = True

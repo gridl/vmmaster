@@ -21,11 +21,8 @@ log = logging.getLogger(__name__)
 
 def threaded_wait(func):
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        def thread_target():
-            return func(self, *args, **kwargs)
-
-        tr = Thread(target=thread_target, name=getattr(func, "__name__", None))
+    def wrapper(*args, **kwargs):
+        tr = Thread(target=func, args=args, kwargs=kwargs, name=getattr(func, "__name__", 'some thread'))
         tr.daemon = True
         tr.start()
 
@@ -219,6 +216,8 @@ class OpenstackClone(Clone):
         from core.utils import openstack_utils
         self.nova_client = openstack_utils.nova_client()
 
+        self._threads = []
+
     @property
     def network_id(self):
         return getattr(config, "OPENSTACK_NETWORK_ID")
@@ -285,11 +284,14 @@ class OpenstackClone(Clone):
         ping_retry = 1
 
         while True:
+            log.debug("Wait for activated: {}".format(getattr(method, "__name__", 'method')))
             server = self.get_vm(self.name)
             if not server:
                 log.error("VM %s has not been created." % self.name)
                 self.delete(try_to_rebuild=False)
                 break
+
+            log.debug("server: {}, ip: {}".format(self.name, self.ip))
 
             if self.is_spawning(server):
                 log.info("Virtual Machine %s is spawning..." % self.name)
@@ -320,6 +322,7 @@ class OpenstackClone(Clone):
                 log.error("VM %s was errored. Rebuilding..." % server.name)
                 self.rebuild()
                 break
+            time.sleep(1)
 
     @property
     def image(self):
@@ -354,6 +357,9 @@ class OpenstackClone(Clone):
             return None
 
     def delete(self, try_to_rebuild=True):
+        if self._threads:
+            log.warn("VM {} got running threads: {}".format(self.name, self._threads))
+
         if try_to_rebuild and self.is_preloaded():
             self.rebuild()
             return
@@ -370,6 +376,10 @@ class OpenstackClone(Clone):
         log.info("Deleted openstack clone: {0}".format(self.name))
         VirtualMachine.delete(self)
 
+    def finish_wait(self):
+        log.info("Finish wait: rebuild vm %s was successful" % self.name)
+        self._threads.pop()
+
     def rebuild(self):
         log.info("Rebuilding openstack {clone}".format(clone=self.name))
         self.ready = False
@@ -382,11 +392,8 @@ class OpenstackClone(Clone):
         if server:
             try:
                 server.rebuild(self.image)
-                self._wait_for_activated_service(
-                    lambda: log.info(
-                        "Rebuild vm %s was successful" % self.name
-                    )
-                )
+                t = self._wait_for_activated_service(self.finish_wait)
+                self._threads.append(t)
             except:
                 log.exception("Rebuild vm %s was FAILED." % self.name)
                 self.delete(try_to_rebuild=False)

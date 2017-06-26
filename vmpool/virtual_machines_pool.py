@@ -140,6 +140,8 @@ class VirtualMachinesPool(object):
             for vm in cls.pool + cls.using:
                 if vm.name == _name:
                     return vm
+        log.warn("No vm {} found".format(_name))
+        return None
 
     @classmethod
     def count_virtual_machines(cls, it):
@@ -161,6 +163,8 @@ class VirtualMachinesPool(object):
     def add(cls, platform, prefix="ondemand", to=None):
         if prefix == "preloaded":
             log.info("Preloading %s." % platform)
+
+        prefix += "-zubov"
 
         if to is None:
             to = cls.using
@@ -207,7 +211,10 @@ class VirtualMachinesPool(object):
 
     @classmethod
     def save_artifact(cls, session_id, artifacts):
-        return cls.artifact_collector.add_tasks(session_id, artifacts)
+        log.debug("Collector: Add task session_id={}".format(session_id))
+        res = cls.artifact_collector.add_tasks(session_id, artifacts)
+        log.debug("Collector: Done add task session_id={}".format(session_id))
+        return res
 
     @classmethod
     def preload(cls, origin_name, prefix=None):

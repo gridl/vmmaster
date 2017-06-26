@@ -32,7 +32,7 @@ def get_session():
 
 
 def keystone_client():
-    keystone_log = logging.getLogger("keystoneauth.identity.v3")
+    keystone_log = logging.getLogger("keystoneauth")
     keystone_log.setLevel(OPENSTACK_UTILS_LOG_LEVEL)
     return ksclient.Client(session=get_session())
 

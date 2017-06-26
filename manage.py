@@ -1,5 +1,21 @@
 # coding: utf-8
 
+import threading
+
+
+class MyThread(threading.Thread):
+
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, verbose=None):
+        super(MyThread, self).__init__(group, target, name, args, kwargs, verbose)
+        import prctl
+        name = getattr(target, "func_name", target.__name__) if target else str(target)
+        prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
+
+
+threading.Thread = MyThread
+
+
 import logging
 from flask import Flask
 

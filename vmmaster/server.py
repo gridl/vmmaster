@@ -80,6 +80,7 @@ class VMMasterServer(object):
         def wait_for():
             while active_sessions:
                 for session in active_sessions:
+                    log.debug("Session {} status {}".format(session.id, session.status))
                     if session.status in ('failed', 'succeed'):
                         active_sessions.remove(session)
 

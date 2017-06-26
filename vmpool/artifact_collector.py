@@ -1,4 +1,6 @@
 # coding: utf-8
+
+from time import sleep
 from threading import Thread
 
 import os
@@ -89,6 +91,9 @@ def save_artifact(session, filename, original_path):
         except:
             log.exception("Selenium log file %s doesn't created for session %s"
                           % (filename, session.id))
+
+    log.warn("Now sleep, session={}".format(session))
+    sleep(99)
     return new_path
 
 
@@ -101,6 +106,7 @@ def get_artifact_from_endpoint(session, path):
     host = "ws://%s:%s/runScript" % (session.endpoint_ip,
                                      config.VMMASTER_AGENT_PORT)
     script = '{"command": "sudo -S sh", "script": "cat %s"}' % path
+    log.debug("Run script for session {}, cmd={}".format(session, script))
     for status, headers, body in run_script(script, host):
         yield None, None, None
 
@@ -125,7 +131,7 @@ def save_selenium_log(session_id, filename, original_path):
         session.save()
         log.info("Selenium log saved to %s for session %s" % (log_path, session_id))
     else:
-        log.info("Selenium log doesn't saved for session %s" % session_id)
+        log.warn("Selenium log doesn't saved for session %s" % session_id)
 
 
 def on_completed_task(session_id):
@@ -141,7 +147,9 @@ def on_completed_task(session_id):
         return
 
     endpoint = current_app.pool.get_by_name(session.endpoint_name)
-    endpoint.delete()
+    if endpoint:
+        log.info("Endpoint {} is still here. Deleting...".format(endpoint.name))
+        endpoint.delete()
     log.debug("Task finished for session %s" % session_id)
 
 

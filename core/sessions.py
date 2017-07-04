@@ -262,7 +262,11 @@ class SessionWorker(Thread):
                 time.sleep(1)
 
     def stop(self):
+        log.debug("SessionWorker stopping...")
         self.running = False
+        log.info("Close waiting sessions...")
+        for session in self.sessions.waiting():
+            session.close(reason="vmmaster shut down")
         self.join()
         log.info("SessionWorker stopped")
 
@@ -296,9 +300,9 @@ class Sessions(object):
     def waiting(self):
         return [s for s in self.active() if s.status == "waiting"]
 
-    def kill_all(self):
+    def kill_all(self, reason=None):
         for session in self.active_sessions.values():
-            session.close()
+            session.close(reason)
 
     def get_session(self, session_id):
         try:

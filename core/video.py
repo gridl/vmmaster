@@ -102,6 +102,7 @@ class VNCVideoHelper:
         ]
 
         self.proxy = multiprocessing.Process(
+            name="Proxy",
             target=websockify.websocketproxy.websockify_init
         )
 
@@ -127,6 +128,7 @@ class VNCVideoHelper:
             'debug': 1
         }
         self.recorder = multiprocessing.Process(
+            name="Recorder",
             target=self._flvrec,
             args=(self.__filepath, self.host, self.port),
             kwargs=kwargs

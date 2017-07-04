@@ -1,6 +1,8 @@
 # coding: utf-8
 
 import threading
+import logging
+my_log = logging.getLogger("__threads__")
 
 
 class MyThread(threading.Thread):
@@ -8,15 +10,19 @@ class MyThread(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs=None, verbose=None):
         super(MyThread, self).__init__(group, target, name, args, kwargs, verbose)
-        import prctl
-        name = getattr(target, "func_name", target.__name__) if target else str(target)
-        prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
+        # import prctl
+        self.the_name = getattr(target, "func_name", target.__name__) if target else self.__class__.__name__
+        my_log.debug("{} start".format(self.the_name))
+        # prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
+
+    def __del__(self, *args, **kwargs):
+        my_log.debug("{} done".format(self.the_name))
+        super(MyThread, self).__init__(*args, **kwargs)
 
 
 threading.Thread = MyThread
 
 
-import logging
 from flask import Flask
 
 from twisted.internet import reactor

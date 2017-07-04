@@ -34,7 +34,7 @@ class VirtualMachinesPool(object):
     @classmethod
     def start_workers(cls, app):
         cls.app = app
-        cls.artifact_collector = ArtifactCollector(cls)
+        # cls.artifact_collector = ArtifactCollector(cls)
         cls.preloader = VirtualMachinesPoolPreloader(cls)
         cls.preloader.start()
 

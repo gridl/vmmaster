@@ -58,7 +58,7 @@ def connection_watcher(func):
                 raise Exception("")
             elif hasattr(request, "session"):
                 log.debug("Session: {} status: {}.".format(getattr(request.session, 'id', 'unknown'), request.session.status))
-                time.sleep(5)
+                time.sleep(0.2)
 
             time.sleep(0.2)
         return value

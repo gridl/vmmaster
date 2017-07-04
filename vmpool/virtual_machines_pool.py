@@ -211,10 +211,11 @@ class VirtualMachinesPool(object):
 
     @classmethod
     def save_artifact(cls, session_id, artifacts):
-        log.debug("Collector: Add task session_id={}".format(session_id))
-        res = cls.artifact_collector.add_tasks(session_id, artifacts)
-        log.debug("Collector: Done add task session_id={}".format(session_id))
-        return res
+        if hasattr(cls, "artofact_collector"):
+            log.debug("Collector: Add task session_id={}".format(session_id))
+            res = cls.artifact_collector.add_tasks(session_id, artifacts)
+            log.debug("Collector: Done add task session_id={}".format(session_id))
+            return res
 
     @classmethod
     def preload(cls, origin_name, prefix=None):

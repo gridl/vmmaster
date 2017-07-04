@@ -15,9 +15,6 @@ class MyThread(threading.Thread):
         my_log.debug("{} start".format(self.the_name))
         # prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
 
-    def __del__(self, *args, **kwargs):
-        my_log.debug("{} done".format(self.the_name))
-
 
 threading.Thread = MyThread
 

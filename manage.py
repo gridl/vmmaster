@@ -17,7 +17,7 @@ class MyThread(threading.Thread):
 
     def __del__(self, *args, **kwargs):
         my_log.debug("{} done".format(self.the_name))
-        super(MyThread, self).__init__(*args, **kwargs)
+        super(MyThread, self).__init__(self, *args, **kwargs)
 
 
 threading.Thread = MyThread

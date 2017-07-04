@@ -121,9 +121,9 @@ class Session(models.Session):
             log.warn("Session {} have no endpoint!".format(self.id))
             return False
         else:
-            log.debug("Saving artifacts for session={}, ip=".format(self.id, self.endpoint_ip))
+            log.debug("Saving artifacts for session={}, ip={}".format(self.id, self.endpoint_ip))
             res = self.endpoint.save_artifacts(self, artifacts)
-            log.debug("Done saving artifacts for session={}, ip=".format(self.id, self.endpoint_ip))
+            log.debug("Done saving artifacts for session={}, ip={}".format(self.id, self.endpoint_ip))
             return res
 
 

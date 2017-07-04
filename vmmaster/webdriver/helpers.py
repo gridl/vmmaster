@@ -53,8 +53,14 @@ def connection_watcher(func):
                 raise TimeoutException(session_timeouted)
             elif session_closed:
                 raise SessionException(session_closed)
+            elif not hasattr(request, "session"):
+                log.warn("Something is wrong, request has not session object")
+                raise Exception("")
+            elif hasattr(request, "session"):
+                log.debug("Session: {} status: {}.".format(getattr(request.session, 'id', 'unknown'), request.session.status))
+                time.sleep(5)
 
-            time.sleep(0.01)
+            time.sleep(0.2)
         return value
     return wrapper
 
@@ -224,6 +230,7 @@ def get_session():
     yield session
 
     for _endpoint in get_endpoint(session.id, dc):
+        # HERE
         session.endpoint = _endpoint
         yield session
 

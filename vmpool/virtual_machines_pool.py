@@ -23,8 +23,6 @@ class VirtualMachinesPool(object):
     preloader = None
     artifact_collector = None
 
-    __cant_produce_count = 0
-
     def __str__(self):
         return str(self.pool)
 
@@ -83,15 +81,6 @@ class VirtualMachinesPool(object):
         return len(cls.pool) + len(cls.using)
 
     @classmethod
-    def log_platform_issue(cls, platform):
-        log.debug('Can\'t produce new virtual machine with platform {}: '
-                  'not enough Instances resources'.format(platform))
-        cls.__cant_produce_count += 1
-        if cls.__cant_produce_count > 1000:
-            log.warning('Can\'t produce new virtual machine with platform {}: '
-                        'not enough Instances resources'.format(platform))
-
-    @classmethod
     def can_produce(cls, platform):
         platform_limit = cls.platforms.get_limit(platform)
 
@@ -99,7 +88,8 @@ class VirtualMachinesPool(object):
             return True
 
         if cls.count() >= platform_limit:
-            cls.log_platform_issue(platform)
+            log.debug('Can\'t produce new virtual machine with platform {}: '
+                      'not enough Instances resources'.format(platform))
             return False
         else:
             return True

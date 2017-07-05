@@ -69,6 +69,7 @@ class VMMasterServer(object):
         del self
 
     def __del__(self):
+        log.warning("Delete server")
         d = self.bind.stopListening()
         _block_on(d, 20)
         self.app.cleanup()
@@ -80,7 +81,7 @@ class VMMasterServer(object):
         def wait_for():
             while active_sessions:
                 for session in active_sessions:
-                    log.debug("Session {} status {}".format(session.id, session.status))
+                    log.debug("ACTIVE: Session {} status {}".format(session.id, session.status))
                     if session.status in ('failed', 'succeed'):
                         active_sessions.remove(session)
 
@@ -95,4 +96,5 @@ class VMMasterServer(object):
     @inlineCallbacks
     def before_shutdown(self):
         self.app.running = False
+        time.sleep(5)
         yield self.wait_for_end_active_sessions()

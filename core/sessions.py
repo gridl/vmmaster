@@ -264,9 +264,6 @@ class SessionWorker(Thread):
     def stop(self):
         log.debug("SessionWorker stopping...")
         self.running = False
-        log.info("Close waiting sessions...")
-        # for session in self.sessions.waiting():
-        #     session.close(reason="vmmaster shut down")
         self.join()
         log.info("SessionWorker stopped")
 

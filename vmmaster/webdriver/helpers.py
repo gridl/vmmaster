@@ -48,17 +48,16 @@ def connection_watcher(func):
             session_closed = is_session_closed()
 
             if is_request_closed():
+                log.warning("REQUEST CLOSED")
                 raise ConnectionError("Client has disconnected")
             elif session_timeouted:
                 raise TimeoutException(session_timeouted)
             elif session_closed:
+                log.warning("SESSION CLOSED")
                 raise SessionException(session_closed)
             elif not hasattr(request, "session"):
                 log.warn("Something is wrong, request has not session object")
                 raise Exception("")
-            elif hasattr(request, "session"):
-                log.debug("Session: {} status: {}.".format(getattr(request.session, 'id', 'unknown'), request.session.status))
-                time.sleep(0.2)
 
             time.sleep(0.2)
         return value

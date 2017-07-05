@@ -277,7 +277,6 @@ class ArtifactCollector(ThreadPool):
         log.info("All tasks completed.")
 
     def stop(self):
-        self.del_tasks(self.in_queue.keys())
+        self.terminate()
         self.close()
-        self.join()
         log.info("ArtifactCollector stopped")

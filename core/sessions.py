@@ -116,8 +116,7 @@ class Session(models.Session):
 
     def save_artifacts(self):
         artifacts = {
-            "selenium_server": "/var/log/selenium_server.log",
-            "syslog": "/var/log/syslog",
+            "selenium_server": "/var/log/selenium_server.log"
         }
         if not self.endpoint_ip:
             return False

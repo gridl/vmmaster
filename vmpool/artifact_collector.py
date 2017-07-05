@@ -1,5 +1,5 @@
 # coding: utf-8
-
+from collections import defaultdict
 from time import sleep, time
 from threading import Thread
 
@@ -173,7 +173,7 @@ class ArtifactCollector(ThreadPool):
             )
         else:
             super(ArtifactCollector, self).__init__()
-        self.in_queue = {}
+        self.in_queue = defaultdict(list)
         self.vmpool = vmpool
         log.info("ArtifactCollector started")
 
@@ -204,10 +204,7 @@ class ArtifactCollector(ThreadPool):
     def run_task(self, session_id, method, args):
         apply_result = self.apply_async(method, args=args)
         log.debug("Apply Result %s" % apply_result)
-        if session_id in self.in_queue:
-            self.in_queue[session_id].append(apply_result)
-        else:
-            self.in_queue[session_id] = [apply_result]
+        self.in_queue[session_id].append(apply_result)
         log.info("Task for getting artifacts added to queue for session %s" % session_id)
         log.debug('ArtifactCollector Queue: %s' % str(self.in_queue))
 
@@ -229,7 +226,7 @@ class ArtifactCollector(ThreadPool):
         """
         :param session_id: int
         """
-        tasks = self.in_queue.get(session_id, list())
+        tasks = self.in_queue[session_id]
         for task in tasks:
             if task and not task.ready():
                 task.successful()
@@ -257,13 +254,16 @@ class ArtifactCollector(ThreadPool):
         with self.vmpool.app.app_context():
             try:
                 save_selenium_log(session_id, artifact_name, artifact_path)
+            except:
+                log.exception("Error saving selenium log for session {} ({}: {})"
+                              .format(session_id, artifact_name, artifact_path))
             finally:
                 self.in_queue.pop(session_id)
                 on_completed_task(session_id)
 
     def wait_for_complete(self):
         start = time()
-        timeout = getattr(config, "COLLECT_ARTIFACTS_WAIT_TIMEOUT", 10)
+        timeout = getattr(config, "COLLECT_ARTIFACTS_WAIT_TIMEOUT", 60)
 
         while self.in_queue:
             log.info("Wait for tasks to complete: {}".format(
@@ -279,4 +279,5 @@ class ArtifactCollector(ThreadPool):
     def stop(self):
         self.del_tasks(self.in_queue.keys())
         self.close()
+        self.join()
         log.info("ArtifactCollector stopped")

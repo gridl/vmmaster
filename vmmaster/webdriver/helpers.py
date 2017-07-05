@@ -48,18 +48,13 @@ def connection_watcher(func):
             session_closed = is_session_closed()
 
             if is_request_closed():
-                log.warning("REQUEST CLOSED")
                 raise ConnectionError("Client has disconnected")
             elif session_timeouted:
                 raise TimeoutException(session_timeouted)
             elif session_closed:
-                log.warning("SESSION CLOSED")
                 raise SessionException(session_closed)
-            elif not hasattr(request, "session"):
-                log.warn("Something is wrong, request has not session object")
-                raise Exception("")
 
-            time.sleep(0.2)
+            time.sleep(0.1)
         return value
     return wrapper
 
@@ -204,12 +199,11 @@ def get_endpoint(session_id, dc):
             log.info("Attempt %s to get endpoint %s for session %s was succeed"
                      % (attempt, _endpoint, session_id))
         except CreationException as e:
-            log.exception("Attempt %s to get endpoint for session %s was failed: %s"
-                          % (attempt, session_id, str(e)))
-            if hasattr(_endpoint, "ready"):
-                if not _endpoint.ready:
-                    _endpoint.delete()
-                    _endpoint = None
+            log.exception("Attempt %s to get endpoint for session %s was failed"
+                          % (attempt, session_id))
+            if not getattr(_endpoint, "ready", False):
+                _endpoint.delete()
+                _endpoint = None
             if attempt < attempts:
                 time.sleep(wait_time)
             else:
@@ -229,8 +223,8 @@ def get_session():
     yield session
 
     for _endpoint in get_endpoint(session.id, dc):
-        # HERE
-        session.endpoint = _endpoint
+        if _endpoint:
+            session.endpoint = _endpoint
         yield session
 
     session.run(session.endpoint)

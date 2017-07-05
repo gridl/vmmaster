@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from time import sleep
+from time import sleep, time
 from threading import Thread
 
 import os
@@ -260,6 +260,21 @@ class ArtifactCollector(ThreadPool):
             finally:
                 self.in_queue.pop(session_id)
                 on_completed_task(session_id)
+
+    def wait_for_complete(self):
+        start = time()
+        timeout = getattr(config, "COLLECT_ARTIFACTS_WAIT_TIMEOUT", 10)
+
+        while self.in_queue:
+            log.info("Wait for tasks to complete: {}".format(
+                [(session, len(tasks)) for session, tasks in self.in_queue.items()])
+            )
+            sleep(1)
+            if time() - start > timeout:
+                log.warning("Timeout {} while waiting for tasks".format(timeout))
+                return
+
+        log.info("All tasks completed.")
 
     def stop(self):
         self.del_tasks(self.in_queue.keys())

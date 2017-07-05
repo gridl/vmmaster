@@ -74,7 +74,7 @@ class VMMasterServer(object):
         _block_on(d, 20)
         self.app.cleanup()
         self.thread_pool.stop()
-        log.warning("Server gracefully shut down")
+        log.info("Server gracefully shut down")
 
     def wait_for_end_active_sessions(self):
         active_sessions = self.app.sessions.active()

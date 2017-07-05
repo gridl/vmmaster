@@ -92,8 +92,6 @@ def save_artifact(session, filename, original_path):
             log.exception("Selenium log file %s doesn't created for session %s"
                           % (filename, session.id))
 
-    log.warn("Now sleep, session={}".format(session))
-    sleep(99)
     return new_path
 
 

@@ -37,13 +37,13 @@ class Vmmaster(Flask):
         self.database.unregister_platforms(self.uuid)
 
     def cleanup(self):
-        log.info("Cleanup...")
+        log.info("Application cleanup...")
         self.pool.stop_workers()
         self.sessions.worker.stop()
         self.pool.free()
         self.unregister()
         self.pool.platforms.cleanup()
-        log.info("Cleanup done.")
+        log.info("Application cleanup done")
 
 
 def register_blueprints(app):

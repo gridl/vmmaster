@@ -69,34 +69,34 @@ class VMMasterServer(object):
         del self
 
     def __del__(self):
-        log.warning("Delete server")
+        log.info("Shutting down server...")
         d = self.bind.stopListening()
         _block_on(d, 20)
         self.app.cleanup()
         self.thread_pool.stop()
+        log.warning("Server gracefully shut down")
 
     def wait_for_end_active_sessions(self):
         active_sessions = self.app.sessions.active()
-        log.debug("Active sessions: {}".format([(s.id, s.status) for s in active_sessions]))
+        log.info("Active sessions: {}".format([(s.id, s.status) for s in active_sessions]))
 
         def wait_for():
             while active_sessions:
+                log.info("Waiting for {} sessions to complete: {}"
+                         .format(len(active_sessions), [(i.id, i.status) for i in active_sessions]))
                 for session in active_sessions:
-                    log.debug("ACTIVE: Session {} status {}".format(session.id, session.status))
-                    if session.status in ('failed', 'succeed'):
+                    if session.is_done:
+                        log.debug("Session {} is done".format(session.id))
                         active_sessions.remove(session)
 
                 time.sleep(1)
-                log.info("Wait for end %s active session[s]:"
-                         " %s" % (len(active_sessions), active_sessions))
 
-        return deferToThread(wait_for, self).addBoth(
-            callback=lambda i: log.info("All active sessions has been completed"),
-            errback=lambda i: log.error("Errback here")
+        return deferToThread(wait_for).addCallbacks(
+            callback=lambda res: log.info("All active sessions has been completed."),
+            errback=lambda failure: log.error("Error while waiting for active_sessions: {}".format(failure))
         )
 
     @inlineCallbacks
     def before_shutdown(self):
         self.app.running = False
-        time.sleep(5)
         yield self.wait_for_end_active_sessions()

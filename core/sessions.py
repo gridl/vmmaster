@@ -82,6 +82,10 @@ class Session(models.Session):
         return (datetime.now() - self.created).total_seconds()
 
     @property
+    def is_done(self):
+        return self.status in ('failed', 'succeed')
+
+    @property
     def info(self):
         stat = {
             "id": self.id,
@@ -125,7 +129,6 @@ class Session(models.Session):
             res = self.endpoint.save_artifacts(self, artifacts)
             log.debug("Done saving artifacts for session={}, ip={}".format(self.id, self.endpoint_ip))
             return res
-
 
     def close(self, reason=None):
         self.closed = True

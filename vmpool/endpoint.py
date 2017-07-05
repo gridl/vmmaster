@@ -43,22 +43,21 @@ def get_vm(desired_caps):
         lambda: vm, timeout=config.GET_VM_TIMEOUT
     ):
         vm = current_app.pool.get_vm(platform)
+        yield vm
         if vm:
             break
-
-    if not vm:
+    else:
         raise CreationException(
             "Timeout while waiting for vm with platform %s" % platform
         )
-
-    yield vm
 
     for _ in generator_wait_for(
         lambda: vm.ready, timeout=config.GET_VM_TIMEOUT
     ):
         yield vm
-
-    if not vm.ready:
+        if vm.ready:
+            break
+    else:
         vm.delete(try_to_rebuild=False)
         raise CreationException(
             'Timeout while building vm %s (platform: %s)' %

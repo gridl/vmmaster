@@ -5,18 +5,18 @@ import logging
 my_log = logging.getLogger("__threads__")
 
 
-class MyThread(threading.Thread):
-
-    def __init__(self, group=None, target=None, name=None,
-                 args=(), kwargs=None, verbose=None):
-        super(MyThread, self).__init__(group, target, name, args, kwargs, verbose)
-        # import prctl
-        self.the_name = getattr(target, "func_name", target.__name__) if target else self.__class__.__name__
-        my_log.debug("{} start".format(self.the_name))
-        # prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
-
-
-threading.Thread = MyThread
+# class MyThread(threading.Thread):
+#
+#     def __init__(self, group=None, target=None, name=None,
+#                  args=(), kwargs=None, verbose=None):
+#         super(MyThread, self).__init__(group, target, name, args, kwargs, verbose)
+#         # import prctl
+#         self.the_name = getattr(target, "func_name", target.__name__) if target else self.__class__.__name__
+#         my_log.debug("{} start".format(self.the_name))
+#         # prctl.set_proctitle("{} with {}, {}".format(name, args, kwargs))
+#
+#
+# threading.Thread = MyThread
 
 
 from flask import Flask

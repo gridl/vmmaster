@@ -34,7 +34,7 @@ class VirtualMachinesPool(object):
     @classmethod
     def start_workers(cls, app):
         cls.app = app
-        # cls.artifact_collector = ArtifactCollector(cls)
+        cls.artifact_collector = ArtifactCollector(cls)
         cls.preloader = VirtualMachinesPoolPreloader(cls)
         cls.preloader.start()
 
@@ -43,7 +43,7 @@ class VirtualMachinesPool(object):
         if cls.preloader:
             cls.preloader.stop()
         if cls.artifact_collector:
-            cls.artifact_collector.close()
+            cls.artifact_collector.stop()
 
     @classmethod
     def remove_vm(cls, vm):

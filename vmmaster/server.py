@@ -77,6 +77,7 @@ class VMMasterServer(object):
 
     def wait_for_end_active_sessions(self):
         active_sessions = self.app.sessions.active()
+        log.debug("Active sessions: {}".format([(s.id, s.status) for s in active_sessions]))
 
         def wait_for():
             while active_sessions:
@@ -90,7 +91,8 @@ class VMMasterServer(object):
                          " %s" % (len(active_sessions), active_sessions))
 
         return deferToThread(wait_for, self).addBoth(
-            lambda i: log.info("All active sessions has been completed")
+            callback=lambda i: log.info("All active sessions has been completed"),
+            errback=lambda i: log.error("Errback here")
         )
 
     @inlineCallbacks

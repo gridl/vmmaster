@@ -1,13 +1,8 @@
 # coding: utf-8
 
 from mock import Mock, patch, PropertyMock
-from core.config import setup_config
-from tests.unit.helpers import wait_for, BaseTestCase
-
-
-def custom_wait(self, method):
-    self.ready = True
-    self.checking = False
+from core.config import setup_config, config
+from tests.unit.helpers import wait_for, BaseTestCase, custom_wait
 
 
 @patch(
@@ -23,7 +18,7 @@ class TestOpenstackClone(BaseTestCase):
         setup_config('data/config_openstack.py')
 
         self.platform = "origin_1"
-        self.address = ("localhost", 9001)
+        self.address = ("localhost", config.PORT)
 
         self.mocked_image = Mock(
             id=1, status='active',
@@ -35,11 +30,7 @@ class TestOpenstackClone(BaseTestCase):
         type(self.mocked_image).name = PropertyMock(
             return_value='test_origin_1')
 
-        with patch(
-            'core.connection.Virsh', Mock(),
-        ), patch(
-            'core.network.Network', Mock()
-        ), patch.multiple(
+        with patch.multiple(
             'core.utils.openstack_utils',
             nova_client=Mock(return_value=Mock())
         ), patch.multiple(
@@ -465,11 +456,7 @@ class TestNetworkGetting(BaseTestCase):
             min_disk=20, min_ram=2, instance_type_flavorid=1)
         type(mocked_image).name = PropertyMock(return_value='test_origin_1')
 
-        with patch(
-            'core.network.Network', Mock()
-        ), patch(
-            'core.connection.Virsh', Mock()
-        ), patch.multiple(
+        with patch.multiple(
             'core.utils.openstack_utils',
             nova_client=Mock(),
         ), patch(

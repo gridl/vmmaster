@@ -99,8 +99,7 @@ class OpenstackClone(Clone):
         return getattr(config, "OPENSTACK_NETWORK_ID")
 
     @staticmethod
-    def set_userdata():
-        file_path = getattr(config, "OPENSTACK_VM_USERDATA_FILE_PATH", "userdata")
+    def set_userdata(file_path):
         if os.path.isfile(file_path):
             try:
                 return open(file_path)
@@ -118,7 +117,9 @@ class OpenstackClone(Clone):
             'flavor': self.flavor,
             'nics': [{'net-id': self.network_id}],
             'meta': getattr(config, "OPENASTACK_VM_META_DATA", {}),
-            'userdata': self.set_userdata()
+            'userdata': self.set_userdata(
+                getattr(config, "OPENSTACK_VM_USERDATA_FILE_PATH", "userdata")
+            )
         }
         if bool(config.OPENSTACK_ZONE_FOR_VM_CREATE):
             kwargs.update({'availability_zone': config.OPENSTACK_ZONE_FOR_VM_CREATE})

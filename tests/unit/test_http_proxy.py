@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from mock import Mock, patch
-from core.config import setup_config
+from core.config import setup_config, config
 
 from helpers import (vmmaster_server_mock, server_is_up, server_is_down,
                      BaseTestCase, get_free_port, ServerMock)
@@ -9,11 +9,12 @@ from helpers import (vmmaster_server_mock, server_is_up, server_is_down,
 import requests
 
 
+@patch('core.utils.openstack_utils.nova_client', Mock())
 class TestHttpProxy(BaseTestCase):
     def setUp(self):
-        setup_config('data/config.py')
+        setup_config('data/config_openstack.py')
         self.host = "localhost"
-        self.port = 9001
+        self.port = config.PORT
         self.address = (self.host, self.port)
         self.vmmaster = vmmaster_server_mock(self.port)
         server_is_up(self.address)

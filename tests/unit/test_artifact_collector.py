@@ -18,7 +18,7 @@ def failed_run_script_mock(script, host):
 class TestArtifactCollector(BaseTestCase):
     @classmethod
     def setUpClass(cls):
-        setup_config('data/config.py')
+        setup_config('data/config_openstack.py')
         cls.app = Flask(__name__)
         cls.app.database = DatabaseMock()
         cls.app.sessions = Mock()
@@ -43,10 +43,6 @@ class TestArtifactCollector(BaseTestCase):
         """
         from vmpool.artifact_collector import ArtifactCollector
         with patch(
-            "core.network.Network", Mock()
-        ), patch(
-            "core.connection.Virsh", Mock()
-        ), patch(
             'core.db.Database', DatabaseMock()
         ):
             from core.sessions import Session
@@ -90,10 +86,6 @@ class TestArtifactCollector(BaseTestCase):
         """
         from vmpool.artifact_collector import ArtifactCollector
         with patch(
-            "core.network.Network", Mock()
-        ), patch(
-            "core.connection.Virsh", Mock()
-        ), patch(
             'core.db.Database', DatabaseMock()
         ):
             from core.sessions import Session
@@ -132,10 +124,6 @@ class TestArtifactCollector(BaseTestCase):
         """
         from vmpool.artifact_collector import ArtifactCollector
         with patch(
-            "core.network.Network", Mock()
-        ), patch(
-            "core.connection.Virsh", Mock()
-        ), patch(
             'core.db.Database', DatabaseMock()
         ):
             from core.sessions import Session

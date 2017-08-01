@@ -9,7 +9,7 @@ import time
 import socket
 import unittest
 
-from mock import Mock, patch
+from mock import Mock, patch, PropertyMock
 from nose.twistedtools import reactor
 
 from core.utils.network_utils import get_socket
@@ -31,7 +31,7 @@ def request(host, method, url, headers=None, body=None):
     if headers is None:
         headers = dict()
     import httplib
-    conn = httplib.HTTPConnection(host)
+    conn = httplib.HTTPConnection(host, timeout=20)
     conn.request(method=method, url=url, headers=headers, body=body)
     response = conn.getresponse()
 
@@ -211,13 +211,23 @@ class DatabaseMock(Mock):
         self.add = Mock(side_effect=set_primary_key)
 
 
+def custom_wait(self, method):
+    self.ready = True
+    self.checking = False
+
+
 def vmmaster_server_mock(port):
+    mocked_image = Mock(
+        id=1, status='active',
+        get=Mock(return_value='snapshot'),
+        min_disk=20,
+        min_ram=2,
+        instance_type_flavorid=1,
+    )
+    type(mocked_image).name = PropertyMock(
+        return_value='test_origin_1')
+
     with patch(
-        'core.network.Network', Mock(
-            return_value=Mock(get_ip=Mock(return_value='0')))
-    ), patch(
-        'core.connection.Virsh', Mock()
-    ), patch(
         'core.db.Database', DatabaseMock()
     ), patch(
         'core.utils.init.home_dir', Mock(return_value=fake_home_dir())
@@ -225,6 +235,21 @@ def vmmaster_server_mock(port):
         'core.logger.setup_logging', Mock(return_value=Mock())
     ), patch(
         'core.sessions.SessionWorker', Mock()
+    ), patch.multiple(
+        'vmpool.platforms.OpenstackPlatforms',
+        images=Mock(return_value=[mocked_image]),
+        flavor_params=Mock(return_value={'vcpus': 1, 'ram': 2}),
+        limits=Mock(return_value={
+            'maxTotalCores': 10, 'maxTotalInstances': 10,
+            'maxTotalRAMSize': 100, 'totalCoresUsed': 0,
+            'totalInstancesUsed': 0, 'totalRAMUsed': 0}),
+    ), patch.multiple(
+        'core.utils.openstack_utils',
+        nova_client=Mock(return_value=Mock())
+    ), patch.multiple(
+        'vmpool.clone.OpenstackClone',
+        _wait_for_activated_service=custom_wait,
+        ping_vm=Mock(return_value=True)
     ):
         from vmmaster.server import VMMasterServer
         return VMMasterServer(reactor, port)
